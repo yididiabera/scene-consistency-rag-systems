@@ -1,0 +1,18 @@
+### CHARACTER CONSISTENCY ANCHOR
+
+ID: {{ entity_id }}
+Name: {{ name }}
+Appearance: {{ appearance }}
+Version: {{ entity_version }}
+Tags: {% if tags %}{{ tags | join(", ") }}{% else %}none{% endif %}
+LoRA: {% if lora_trigger_word %}{{ lora_trigger_word }}{% else %}none{% endif %}
+Image: {% if canonical_image_path %}{{ canonical_image_path }}{% else %}none{% endif %}
+
+{% if relationships %}
+Relationships:
+{% for rel in relationships %}
+- {{ rel.relationship_type }} -> {{ rel.target_entity }} (strength={{ '%.2f' | format(rel.strength) }}, tags={{ rel.tags | join(", ") }})
+{% endfor %}
+{% endif %}
+
+END ANCHOR

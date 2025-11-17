@@ -1,0 +1,29 @@
+{
+  "location_id": "loc_office_001",
+  "name": "Isaac's Office",
+  "description": "warmly lit office interior, wooden shelves, desk with monitor, large window with city skyline view",
+  "type": "indoor",
+  "tags": [
+    "urban",
+    "modern"
+  ],
+  "setting": {
+    "location": "office",
+    "time_of_day": "daytime",
+    "weather": "sunny",
+    "props": [
+      "desk",
+      "laptop",
+      "chair"
+    ]
+  },
+  "entity_version": 1,
+  "metadata": {
+    "source": "seed_script",
+    "created_at": "2025-11-14T06:14:20Z",
+    "updated_at": "2025-11-14T06:14:20Z",
+    "version": "1.1.0",
+    "confidence": 0.9,
+    "validation_status": "validated"
+  }
+}

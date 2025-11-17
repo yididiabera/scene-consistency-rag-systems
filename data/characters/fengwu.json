@@ -1,0 +1,17 @@
+{
+  "character_id": "char_fengwu_001",
+  "name": "Fengwu",
+  "canonical_image_path": "data/characters/fengwu.jpg",
+  "lora_trigger_word": "<lora:fengwu_v1:1.0>",
+  "appearance": "Fengwu, short curly black hair, front-facing upper-body shot, small confident smile, plain teal background, neutral light, simple focused studio portrait tone",
+  "tags": [],
+  "entity_version": 1,
+  "metadata": {
+    "source": "auto_from_txt",
+    "created_at": "2025-11-14T06:35:48Z",
+    "updated_at": "2025-11-14T06:35:48Z",
+    "version": "1.1.0",
+    "confidence": 0.7,
+    "validation_status": "draft"
+  }
+}

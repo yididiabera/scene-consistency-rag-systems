@@ -1,81 +1,114 @@
 #!/usr/bin/env python3
 """
-Schema validation script for Scene Consistency RAG System.
+Schema Validation Script
+Validates JSON files against JSON Schema definitions.
 
-Validates JSON data against schema definitions.
+Usage:
+    python scripts/validate_schemas.py --schema schemas/character_schema.json --data examples/character_example.json
+    python scripts/validate_schemas.py --schema schemas/character_schema.json --data data/characters
 """
 
-import json
-import sys
 import argparse
+import sys
 from pathlib import Path
-from jsonschema import validate, ValidationError, SchemaError
+from typing import Dict, List
 
-def load_schema(schema_path: Path) -> dict:
-    """Load JSON schema from file."""
-    try:
-        with open(schema_path, 'r') as f:
-            return json.load(f)
-    except FileNotFoundError:
-        print(f" Schema file not found: {schema_path}")
-        sys.exit(1)
-    except json.JSONDecodeError as e:
-        print(f" Invalid JSON in schema {schema_path}: {e}")
-        sys.exit(1)
+from rich.console import Console
+from rich.table import Table
 
-def load_data(data_path: Path) -> dict:
-    """Load JSON data from file."""
-    try:
-        with open(data_path, 'r') as f:
-            return json.load(f)
-    except FileNotFoundError:
-        print(f" Data file not found: {data_path}")
-        sys.exit(1)
-    except json.JSONDecodeError as e:
-        print(f" Invalid JSON in data {data_path}: {e}")
-        sys.exit(1)
+# Import shared validation functions
+import sys as _sys
+from pathlib import Path as _Path
 
-def validate_data(data: dict, schema: dict, data_path: Path) -> bool:
-    """Validate data against schema."""
-    try:
-        validate(instance=data, schema=schema)
-        print(f" {data_path.name} is valid")
-        return True
-    except ValidationError as e:
-        print(f" {data_path.name} validation failed:")
-        print(f"   Error: {e.message}")
-        if e.path:
-            print(f"   Path: {' -> '.join(str(p) for p in e.path)}")
-        return False
-    except SchemaError as e:
-        print(f" Schema error: {e.message}")
-        return False
+_sys.path.insert(0, str(_Path(__file__).parent.parent))
+from tests.utils.schema_validator import validate_file, validate_dir
+
+console = Console()
+
+
+def print_summary(
+    title: str, total: int, total_errors: int, errors_by_file: Dict[str, List[str]]
+):
+    """Print validation summary."""
+    console.rule(f"[bold cyan]{title}")
+    if total == 0:
+        console.print("[yellow]No JSON files found[/yellow]")
+        return
+    if total_errors == 0:
+        console.print(f"[green]✓[/green] All {total} file(s) valid")
+        return
+    console.print(
+        f"[red]✗[/red] {total_errors} error(s) found across {len(errors_by_file)} file(s)"
+    )
+    table = Table(title="Validation Errors")
+    table.add_column("File", style="cyan")
+    table.add_column("Error", style="red")
+    for fname, errs in errors_by_file.items():
+        for e in errs:
+            table.add_row(fname, e)
+    console.print(table)
+
 
 def main():
-    parser = argparse.ArgumentParser(description="Validate JSON data against schemas")
-    parser.add_argument("--schema", required=True, help="Path to schema file")
-    parser.add_argument("--data", required=True, help="Path to data file")
-    
+    """Main entry point."""
+    parser = argparse.ArgumentParser(
+        description="Validate JSON files against JSON Schema definitions",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Validate a single file
+  python scripts/validate_schemas.py --schema schemas/character_schema.json --data examples/character_example.json
+
+  # Validate all files in a directory
+  python scripts/validate_schemas.py --schema schemas/character_schema.json --data data/characters
+
+  # Validate location data
+  python scripts/validate_schemas.py --schema schemas/location_schema.json --data data/locations
+        """,
+    )
+    parser.add_argument(
+        "--schema", type=str, required=True, help="Path to JSON Schema file"
+    )
+    parser.add_argument(
+        "--data",
+        type=str,
+        required=True,
+        help="Path to JSON data file or directory containing JSON files",
+    )
+
     args = parser.parse_args()
-    
+
     schema_path = Path(args.schema)
     data_path = Path(args.data)
-    
-    print(f" Validating {data_path.name} against {schema_path.name}")
-    
-    # Load schema and data
-    schema = load_schema(schema_path)
-    data = load_data(data_path)
-    
-    # Validate
-    is_valid = validate_data(data, schema, data_path)
-    
-    if is_valid:
-        print(" Validation successful!")
-        sys.exit(0)
+
+    if not schema_path.exists():
+        console.print(f"[red]✗[/red] Schema file not found: {schema_path}")
+        return 1
+
+    if not data_path.exists():
+        console.print(f"[red]✗[/red] Data path not found: {data_path}")
+        return 1
+
+    if data_path.is_file():
+        # Validate single file
+        errors = validate_file(schema_path, data_path)
+        if errors:
+            console.print(f"[red]✗[/red] Validation failed for {data_path.name}")
+            for err in errors:
+                console.print(f"  [red]•[/red] {err}")
+            return 1
+        else:
+            console.print(f"[green]✓[/green] {data_path.name} is valid")
+            return 0
+    elif data_path.is_dir():
+        # Validate directory
+        total, total_errors, errors_by_file = validate_dir(schema_path, data_path)
+        print_summary(f"Validation: {data_path}", total, total_errors, errors_by_file)
+        return 0 if total_errors == 0 else 1
     else:
-        print(" Validation failed!")
-        sys.exit(1)
+        console.print(f"[red]✗[/red] Invalid data path: {data_path}")
+        return 1
+
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
