@@ -184,24 +184,3 @@ See `tests/README.md` for a domain-by-domain overview of the suite.
 | `BM25 index not loaded` warning | Run `pipeline.build_indices(..., rebuild=True)` to persist `data/bm25_index.pkl`. |
 | Chroma collection errors | Remove `data/chroma_store/` and rebuild indices. |
 | Slow reranking | Reduce `cfg["top_k_retrieval"]` or switch to a lighter `reranker_model`. |
-
----
-
-## License & Contributions
-
-1. Fork, branch, and keep edits scoped.
-2. Add/extend tests for every feature.
-3. Update documentation (`README`, `docs/ARCHITECTURE.md`, schemas) as contracts change.
-4. Run `pytest tests/ -v` before opening a PR.
-
-_License to be added by project owner._
-
----
-
-## Acknowledgments
-
-- OpenAI CLIP & OpenCLIP maintainers for multimodal encoders.
-- ChromaDB for vector storage primitives.
-- Sentence-Transformers for the CrossEncoder reranker.
-
-Happy building! 
