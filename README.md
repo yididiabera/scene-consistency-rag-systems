@@ -184,3 +184,5 @@ See `tests/README.md` for a domain-by-domain overview of the suite.
 | `BM25 index not loaded` warning | Run `pipeline.build_indices(..., rebuild=True)` to persist `data/bm25_index.pkl`. |
 | Chroma collection errors | Remove `data/chroma_store/` and rebuild indices. |
 | Slow reranking | Reduce `cfg["top_k_retrieval"]` or switch to a lighter `reranker_model`. |
+
+Testing
