@@ -23,7 +23,6 @@ joblib>=1.3.0
 pyyaml>=6.0.0
 tqdm>=4.65.0
 rich>=13.0.0
-Jinja2>=3.0.0
 
 # CLIP backends
 # Prefer OpenAI CLIP; fallback to OpenCLIP if available

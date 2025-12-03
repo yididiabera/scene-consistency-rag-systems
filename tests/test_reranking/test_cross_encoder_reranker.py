@@ -282,6 +282,7 @@ def test_appropriate_logs_on_errors(reranker_setup):
                     reranked, list
                 ), "Should return list even with empty query"
         except ValueError:
+            # Empty query validation is expected to raise ValueError in some components
             pass
 
         console.print("[green]\u2713[/green] Appropriate error handling and logging")

@@ -5,7 +5,7 @@ Tests for validating metadata structure in all entities.
 
 from pathlib import Path
 import re
-from typing import Dict, List
+from typing import Dict
 
 from rich.console import Console
 

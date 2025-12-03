@@ -5,7 +5,6 @@ Tests for validating location JSON files against location schema.
 
 from pathlib import Path
 import re
-from typing import Dict, List
 
 from rich.console import Console
 
@@ -30,14 +29,16 @@ def test_location_files_validate_against_schema():
             for err in errs:
                 console.print(f"    • {err}")
 
+    # Register result BEFORE assertions so failures are recorded
+    register_checklist_item(
+        "stage1", "examples_validate", total_errors == 0 and total > 0
+    )
+    
+    # Now assert (will fail test if errors found)
     assert (
         total_errors == 0
     ), f"Found {total_errors} validation errors in location files"
     assert total > 0, "No location files found"
-
-    register_checklist_item(
-        "stage1", "examples_validate", total_errors == 0 and total > 0
-    )
 
 
 def test_location_schema_required_fields():

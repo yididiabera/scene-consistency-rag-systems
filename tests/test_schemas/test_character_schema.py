@@ -4,7 +4,6 @@ Tests for validating character JSON files against character schema.
 """
 
 from pathlib import Path
-from typing import Dict, List
 
 from rich.console import Console
 
@@ -29,14 +28,16 @@ def test_character_files_validate_against_schema():
             for err in errs:
                 console.print(f"    • {err}")
 
+    # Register result BEFORE assertions so failures are recorded
+    register_checklist_item(
+        "stage1", "schemas_validate", total_errors == 0 and total > 0
+    )
+    
+    # Now assert (will fail test if errors found)
     assert (
         total_errors == 0
     ), f"Found {total_errors} validation errors in character files"
     assert total > 0, "No character files found"
-
-    register_checklist_item(
-        "stage1", "schemas_validate", total_errors == 0 and total > 0
-    )
 
 
 def test_character_schema_required_fields():

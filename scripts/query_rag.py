@@ -2,12 +2,17 @@
 """
 Query the RAG system via the RAGPipeline using hybrid retrieval + reranking.
 
+⚠️ DEPRECATION WARNING:
+This script is maintained for backward compatibility and testing the RAG backend only.
+For production usage, use the SceneConsistencyEngine from prompt_injection module
+(see demo_pipeline.py for example).
+
 Usage:
   python scripts/query_rag.py --query "male protagonist athletic build" --collection characters --topk 5
 
 Notes:
-- Requires dense indices in ChromaDB (run scripts/build_dense.py first).
-- Requires BM25 index (run scripts/build_bm25.py first).
+- Requires dense indices in ChromaDB (run RAGPipeline.build_indices() first).
+- Requires BM25 index (automatically built with build_indices()).
 """
 
 import argparse
