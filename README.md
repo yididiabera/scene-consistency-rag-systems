@@ -25,7 +25,17 @@ HybridRetriever (BM25 + dense search, min–max fusion)
         ↓
 CrossEncoder Reranker (sentence-transformer reranking)
         ↓
-RAGPipeline.query → ContextBuilder → PromptAssembler → Generator
+### Prompt Injection Pipeline
+```
+SceneConsistencyEngine
+        ↓
+EntityExtractor (extracts entities from narrative)
+        ↓
+ContextRetriever (queries RAG for canonical descriptions)
+        ↓
+ShotEnricher (merges narrative + RAG context + metadata)
+        ↓
+EnrichedShot JSON (ready for downstream generation)
 ```
 
 See `docs/ARCHITECTURE.md` for diagrams and component handoffs.
@@ -59,6 +69,7 @@ pip install -r requirements.txt
 | `src/retriever/` | Chroma client + `HybridRetriever` |
 | `src/reranker/` | Cross-encoder reranker (`CrossEncoderReranker`) |
 | `src/pipeline/` | `RAGPipeline` orchestrator |
+| `src/prompt_injection/` | `SceneConsistencyEngine` & prompt injection logic |
 | `schemas/` | JSON Schema contracts for data ingestion |
 | `docs/` | Architecture, schema, and design notes |
 | `tests/` | Pytest suites grouped by stage |
@@ -79,8 +90,8 @@ sys.path.insert(0, "src")  # ensure modules resolve
 from pipeline import RAGPipeline
 
 pipeline = RAGPipeline()
-characters = pipeline.load_json_data("data/characters/isaac.json")
-locations = pipeline.load_json_data("data/locations/loc_office_001.json")
+# Load all data from directories
+# ... (see demo_pipeline.py for full loading logic)
 
 pipeline.build_indices(
     characters=characters,
@@ -89,38 +100,17 @@ pipeline.build_indices(
 )
 ```
 
-`RAGPipeline.build_indices` delegates to:
-- `DatasetPreparer.prepare_documents` → chunk text, tokenize for BM25.
-- `ClipEmbedder.embed_text_batch` / `embed_image` → fused vectors per chunk.
-- `chroma_client.add_documents` → persist dense embeddings.
-- `DatasetPreparer.build_bm25_index` → pickle saved to `cfg["bm25_index_path"]`.
-
-### Query and Rerank
-
-```python
-results = pipeline.query(
-    query_text="male protagonist in office",
-    collection="characters",
-    top_k_retrieval=20,
-    top_k_rerank=5,
-    where={"entity_type": "character"}  # optional metadata filters
-)
-
-for row in results:
-    print(row["entity_id"], row["hybrid_score"], row["rerank_score"])
-```
-
-Behind the scenes:
-- `HybridRetriever.hybrid_search` → BM25 + dense results, min–max normalized, fused using weights `cfg["bm25_weight"]` / `1-cfg["bm25_weight"]`.
-- `Reranker.rerank` → CrossEncoder scoring (`cfg["reranker_model"]`), attaches `rerank_score` and `rerank_score_norm`.
-
 ### Demo Pipeline
 
-```
+```bash
 python demo_pipeline.py
 ```
 
-Shows end-to-end index build + retrieval + formatted output.
+Shows end-to-end RAG consistency engine workflow:
+1. Entity extraction from shot descriptions
+2. Context retrieval using RAG
+3. Shot enrichment with canonical entity descriptions
+4. EnrichedShot JSON output ready for video generation
 
 ---
 
@@ -139,6 +129,7 @@ not exist, the default config is used.
 | `bm25_index_path` | Pickle target for saved BM25 state | `data/bm25_index.pkl` |
 | `chroma_store_path` | On-disk storage for Chroma collections | `data/chroma_store` |
 | `embed_cache_dir` | Directory for optional on-disk embedding cache | `data/embed_cache` |
+| `max_cache_size` | Max items in LRU memory cache (prevents OOM) | `1000` |
 | `reranker_model` | Sentence-Transformers cross encoder name | `"cross-encoder/ms-marco-MiniLM-L-6-v2"` |
 | `reranker_batch_size` | Batch size used by the CrossEncoder reranker | `32` |
 | `chunk_size` | Maximum characters per chunk in DatasetPreparer | `500` |
@@ -184,5 +175,3 @@ See `tests/README.md` for a domain-by-domain overview of the suite.
 | `BM25 index not loaded` warning | Run `pipeline.build_indices(..., rebuild=True)` to persist `data/bm25_index.pkl`. |
 | Chroma collection errors | Remove `data/chroma_store/` and rebuild indices. |
 | Slow reranking | Reduce `cfg["top_k_retrieval"]` or switch to a lighter `reranker_model`. |
-
-Testing

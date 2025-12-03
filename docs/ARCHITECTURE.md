@@ -1,8 +1,8 @@
 # Architecture Documentation
 
-**Version**: 1.2  
-**Last Updated**: 2025-11-17  
-**Status**: Dataset → ClipEmbedder → HybridRetriever stages frozen; reranker and prompt layers ready for iteration.
+**Version**: 2.0  
+**Last Updated**: 2025-12-02  
+**Status**: Production-ready. RAG backend frozen. Prompt injection pipeline implemented via SceneConsistencyEngine.
 
 ---
 
@@ -17,9 +17,10 @@ flowchart LR
     C --> D[Index Builder<br/>Chroma collections + BM25 pickle]
     D --> E[HybridRetriever<br/>BM25 + dense fusion]
     E --> F[CrossEncoder Reranker<br/>rerank_score]
-    F --> G[RAGPipeline.query<br/>ContextBuilder]
-    G --> H[PromptAssembler<br/>final prompts]
-    H --> I[Video / storyboard generator]
+    F --> G[RAGPipeline.query<br/>Backend API]
+    G --> H[SceneConsistencyEngine<br/>Entity Extraction + Context Retrieval]
+    H --> I[ShotEnricher<br/>EnrichedShot JSON]
+    I --> J[Downstream Generator<br/>Video/Storyboard]
 ```
 
 ---
@@ -35,7 +36,10 @@ flowchart LR
 | HybridRetriever | `src/retriever/hybrid_retriever.py` | BM25 and dense retrieval, min–max normalize, weighted fusion | `hybrid_score` candidates |
 | Reranker | `src/reranker/cross_encoder_reranker.py` | CrossEncoder scoring, attach `rerank_score`, return top-K | Ordered list with rerank metadata |
 | RAGPipeline | `src/pipeline/rag_pipeline.py` | Glue code exposing `build_indices` + `query`, handles fallbacks/logging | Stable API for UI/CLI/integration tests |
-| ContextBuilder + PromptAssembler | `src/context/`, `src/prompt/` | Build consistency anchors, produce final prompts for generation | Structured anchor block, final prompt text |
+| SceneConsistencyEngine | `src/prompt_injection/__init__.py` | Orchestrate entity extraction, context retrieval, and shot enrichment | `EnrichedShot` JSON with RAG-enriched metadata |
+| EntityExtractor | `src/prompt_injection/entity_extractor.py` | Extract character/location IDs from narrative text via regex matching | Set of entity IDs |
+| ContextRetriever | `src/prompt_injection/context_retriever.py` | Query RAG for canonical descriptions using full prompt + entity filters | Retrieved context chunks per entity |
+| ShotEnricher | `src/prompt_injection/shot_enricher.py` | Merge RAG context into shot metadata | `EnrichedShot` dataclass with all enriched fields |
 
 ---
 
@@ -65,7 +69,7 @@ return l2_normalize(self.alpha * text_emb.astype(self.dtype) + (1.0 - self.alpha
 ```
 
 5. **Caching strategy**  
-   - **In-memory**: `dict` caches for text and images eliminate redundant CLIP forward passes.
+   - **In-memory LRU**: `OrderedDict` caches for text and images with configurable `max_cache_size` (default 1000) to prevent OOM. Evicts least recently used items when full.
    - **Optional disk cache**: Controlled via `config["use_disk_cache"]`, storing numpy arrays under `data/embed_cache/`.
    - **Entity-level reuse**: `RAGPipeline._index_documents` memoizes canonical image embeddings per entity to avoid loading the same PNG/JPEG across multiple chunks.
 
