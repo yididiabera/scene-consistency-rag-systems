@@ -32,6 +32,9 @@ def get_cross_encoder():
 
         console.print(f"[green]✓[/green] CrossEncoder loaded: {model_name}")
 
+    else:
+        console.print("[green]✓[/green] CrossEncoder loaded from cache")
+
     return _cross_encoder
 
 
@@ -71,13 +74,16 @@ class Reranker:
 
         scores = [float(s) for s in rerank_scores]
         if scores:
-            s_min = min(scores)
-            s_max = max(scores)
-            denom = s_max - s_min
-            if denom <= 1e-12:
-                norm_scores = [0.0 for _ in scores]
+            if len(scores) == 1:
+                norm_scores = [1.0]
             else:
-                norm_scores = [(s - s_min) / denom for s in scores]
+                s_min = min(scores)
+                s_max = max(scores)
+                denom = s_max - s_min
+                if denom <= 1e-12:
+                    norm_scores = [0.0 for _ in scores]
+                else:
+                    norm_scores = [(s - s_min) / denom for s in scores]
         else:
             norm_scores = []
 

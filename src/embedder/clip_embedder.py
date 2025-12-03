@@ -1,10 +1,11 @@
 """
-Production-ready ClipEmbedder with batched text/image encoding, fusion, and caching.
+Production-ready ClipEmbedder with batched text/image encoding, fusion, and LRU caching.
 Public API: embed_text_batch, embed_image_batch, embed_entity, embed_entities
 """
 
 from pathlib import Path
 from typing import List, Dict, Optional, Tuple
+from collections import OrderedDict
 import numpy as np
 import torch
 from PIL import Image
@@ -48,11 +49,37 @@ class ClipEmbedder:
             if (_JOBLIB_AVAILABLE and config.get("use_disk_cache", True))
             else None
         )
-        self._text_cache: Dict[str, np.ndarray] = {}
-        self._image_cache: Dict[str, np.ndarray] = {}
+
+        # LRU cache with configurable max size to prevent unbounded memory growth
+        self.max_cache_size = int(config.get("max_cache_size", 1000))
+        self._text_cache: OrderedDict[str, np.ndarray] = OrderedDict()
+        self._image_cache: OrderedDict[str, np.ndarray] = OrderedDict()
+
         logger.info(
-            f"ClipEmbedder initialized: model={self.model_name} device={self.device} dim={self.dim}"
+            f"ClipEmbedder initialized: model={self.model_name} device={self.device} "
+            f"dim={self.dim} max_cache_size={self.max_cache_size}"
         )
+
+    def _add_to_cache(self, cache: OrderedDict, key: str, value: np.ndarray) -> None:
+        """
+        Add item to LRU cache, evicting least recently used item if at capacity.
+
+        Args:
+            cache: OrderedDict cache to add to
+            key: Cache key
+            value: Value to cache
+        """
+        # If key exists, move to end (mark as recently used)
+        if key in cache:
+            cache.move_to_end(key)
+            cache[key] = value
+        else:
+            # Add new item
+            cache[key] = value
+            # Evict least recently used if over limit
+            if len(cache) > self.max_cache_size:
+                evicted_key = cache.popitem(last=False)[0]
+                logger.debug(f"LRU cache evicted: {evicted_key[:50]}...")
 
     def embed_text_batch(self, texts: List[str]) -> np.ndarray:
         """Batch text embedding. Returns (N, D) float32 array, L2-normalized."""
@@ -62,6 +89,8 @@ class ClipEmbedder:
         to_compute, order = [], []
         for i, t in enumerate(texts):
             if t in self._text_cache:
+                # Move to end (mark as recently used)
+                self._text_cache.move_to_end(t)
                 results[i] = self._text_cache[t]
             else:
                 to_compute.append(t)
@@ -72,7 +101,7 @@ class ClipEmbedder:
             arrs = l2_normalize_batch(feats.cpu().numpy().astype(self.dtype))
             for j, t in enumerate(to_compute):
                 vec = arrs[j].copy()
-                self._text_cache[t] = vec
+                self._add_to_cache(self._text_cache, t, vec)
                 results[order[j]] = vec
         if any(v is None for v in results):
             raise RuntimeError("Failed to produce text embedding")
@@ -82,10 +111,12 @@ class ClipEmbedder:
         if not text or not text.strip():
             raise ValueError("Text cannot be empty")
         if text in self._text_cache:
-            return self._text_cache[text]  # Return cached reference
+            # Move to end (mark as recently used)
+            self._text_cache.move_to_end(text)
+            return self._text_cache[text]
         # Compute and cache
-        result = self.embed_text_batch([text])[0]
-        # Note: result is already in cache from embed_text_batch, return the cached reference
+        self.embed_text_batch([text])  # Caches the result
+        # Return cached reference
         return self._text_cache[text]
 
     def _load_images(self, paths: List[str]) -> Tuple[List, List[int]]:
@@ -106,6 +137,8 @@ class ClipEmbedder:
         to_compute, order = [], []
         for i, p in enumerate(paths):
             if p in self._image_cache:
+                # Move to end (mark as recently used)
+                self._image_cache.move_to_end(p)
                 results[i] = self._image_cache[p]
             else:
                 to_compute.append(p)
@@ -124,7 +157,7 @@ class ClipEmbedder:
             for j, p in enumerate(to_compute):
                 if valid_idx[j] >= 0:
                     vec = arrs[vi].copy()
-                    self._image_cache[p] = vec
+                    self._add_to_cache(self._image_cache, p, vec)
                     results[order[j]] = vec
                     vi += 1
                 else:
@@ -137,10 +170,12 @@ class ClipEmbedder:
         if not path or not path.strip():
             raise ValueError("Image path cannot be empty")
         if path in self._image_cache:
-            return self._image_cache[path]  # Return cached reference
-        # Compute and cache
-        result = self.embed_image_batch([path])[0]
-        # Note: result is already in cache from embed_image_batch, return the cached reference
+            # Move to end (mark as recently used)
+            self._image_cache.move_to_end(path)
+            return self._image_cache[path]
+        # Compute and cache (embed_image_batch handles caching)
+        self.embed_image_batch([path])
+        # Return the cached reference
         return self._image_cache[path]
 
     def _fuse(

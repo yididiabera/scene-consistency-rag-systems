@@ -84,6 +84,7 @@ class ChromaClient:
         try:
             self.client.delete_collection(name=collection_config_name)
         except Exception:
+            # Collection may not exist yet, which is fine - we're about to create it
             pass
 
         collection = self.client.get_or_create_collection(name=collection_config_name)

@@ -181,6 +181,7 @@ class DatasetPreparer:
         try:
             setattr(bm25, "corpus", tokenized_docs)
         except Exception:
+            # Some BM25 implementations may not allow setting attributes, which is fine
             pass
 
         console.print(

@@ -10,6 +10,8 @@ embed_cache_dir: "data/embed_cache"
 # Model Configuration
 clip_model: "ViT-B/32"
 clip_dim: 512
+device: "cuda"  # Device for embeddings: "cuda", "cuda:0", "cuda:1", or "cpu"
+max_cache_size: 1000  # Maximum number of embeddings to cache (LRU eviction)
 sentence_transformer_model: "all-MiniLM-L6-v2"
 reranker_model: "cross-encoder/ms-marco-MiniLM-L-6-v2"
 

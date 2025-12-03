@@ -17,15 +17,19 @@ def load_clip_model(
 ) -> Tuple[object, object, Callable]:
     """Load a CLIP model and preprocessing function once and cache it.
 
+    Args:
+        model_name: CLIP model name (e.g., "ViT-B/32")
+        device: Target device ("cuda", "cuda:0", "cuda:1", "cpu", or None for auto-detect)
+
     Returns (model, preprocess, tokenize_fn)
     tokenize_fn(texts: List[str]) -> torch.LongTensor on device
     """
     dev = device or ("cuda" if torch.cuda.is_available() else "cpu")
+    logger.info(f"Loading CLIP model {model_name} on device: {dev}")
     # Try OpenAI CLIP first
     try:
         import clip as openai_clip  # type: ignore
 
-        logger.info(f"Loading OpenAI CLIP model {model_name} on {dev}")
         model, preprocess = openai_clip.load(model_name, device=dev)
 
         def _tokenize(texts):
@@ -33,7 +37,7 @@ def load_clip_model(
 
         model.eval()
         return model, preprocess, _tokenize
-    except Exception as e_openai:
+    except Exception:
         logger.debug("OpenAI CLIP load failed", exc_info=True)
         # Try OpenCLIP
         try:
@@ -52,7 +56,7 @@ def load_clip_model(
 
             model.eval()
             return model, preprocess, _tokenize
-        except Exception as e_openclip:
+        except Exception:
             logger.exception("Both OpenAI CLIP and OpenCLIP failed to load")
             raise RuntimeError(
                 "Could not load CLIP (tried openai-clip and open_clip)."
