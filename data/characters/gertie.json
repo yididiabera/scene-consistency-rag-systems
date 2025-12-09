@@ -1,0 +1,17 @@
+{
+  "character_id": "char_gertie_001",
+  "name": "Gertie",
+  "canonical_image_path": "data/characters/gertie.png",
+  "lora_trigger_word": "<lora:gertie_v1:1.0>",
+  "appearance": "Gertie, no glasses, long maroon-brown hair tucked behind ears, green headband, wearing a fitted berry-colored scoop-neck top with distressed sleeve ends, navy high-waisted jeans with brown belt, boots partially visible, red scarf tied tightly at neck, lips in deep plum lipstick, arms relaxed by sides, standing front-facing in cozy wood-furnished study with a window",
+  "tags": [],
+  "entity_version": 1,
+  "metadata": {
+    "source": "auto_from_txt",
+    "created_at": "2025-11-14T06:35:48Z",
+    "updated_at": "2025-11-14T06:35:48Z",
+    "version": "1.1.0",
+    "confidence": 0.7,
+    "validation_status": "draft"
+  }
+}

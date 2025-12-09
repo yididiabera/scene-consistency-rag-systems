@@ -30,6 +30,9 @@ data/characters/*.webp
 embeddings/
 models/
 data/embeddings/
+data/bm25_index.pkl
+data/chroma_store/
+data/embed_cache/
 
 # OS
 .DS_Store

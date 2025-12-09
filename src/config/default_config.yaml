@@ -1,0 +1,32 @@
+# RAG System Configuration
+
+# Paths
+data_dir: "data"
+schemas_dir: "schemas"
+chroma_store_path: "data/chroma_store"
+bm25_index_path: "data/bm25_index.pkl"
+embed_cache_dir: "data/embed_cache"
+
+# Model Configuration
+clip_model: "ViT-B/32"
+clip_dim: 512
+device: "cuda"  # Device for embeddings: "cuda", "cuda:0", "cuda:1", or "cpu"
+max_cache_size: 1000  # Maximum number of embeddings to cache (LRU eviction)
+sentence_transformer_model: "all-MiniLM-L6-v2"
+reranker_model: "cross-encoder/ms-marco-MiniLM-L-6-v2"
+
+# Retrieval Configuration
+bm25_weight: 0.3  # Weight for BM25 in hybrid retrieval (0.3 BM25, 0.7 dense)
+top_k_retrieval: 20  # Number of results before reranking
+top_k_rerank: 5  # Final number of results after reranking
+reranker_batch_size: 32
+
+# Chunking Configuration
+chunk_size: 500  # Maximum characters per chunk
+chunk_overlap: 50  # Overlap between chunks
+
+# ChromaDB Collections
+collections:
+  characters: "characters"
+  locations: "locations"
+  relationships: "relationships"

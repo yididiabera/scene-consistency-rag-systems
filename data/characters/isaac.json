@@ -1,0 +1,17 @@
+{
+  "character_id": "char_isaac_001",
+  "name": "Isaac",
+  "canonical_image_path": "data/characters/isaac.png",
+  "lora_trigger_word": "<lora:isaac_v1:1.0>",
+  "appearance": "Isaac, white t-shirt, front-facing, standing with relaxed arms at sides, subtle smirk with one eyebrow slightly raised, confident and calm expression, warmly lit office interior, wooden shelves and drawers, potted plant, monitor and stacked books on desk, city skyline through large window",
+  "tags": [],
+  "entity_version": 1,
+  "metadata": {
+    "source": "auto_from_txt",
+    "created_at": "2025-11-14T06:35:48Z",
+    "updated_at": "2025-11-14T06:35:48Z",
+    "version": "1.1.0",
+    "confidence": 0.7,
+    "validation_status": "draft"
+  }
+}
