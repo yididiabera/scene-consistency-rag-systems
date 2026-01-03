@@ -1,11 +1,7 @@
 """
 EntityExtractor
 ---------------
-Extracts characters, locations, and categories from a free-text prompt.
-
-This module uses deterministic lookup tables built from your existing
-JSON entity files. It uses compiled Regex to ensure exact word matching
-(avoiding partial matches like 'Dan' inside 'Dancing').
+Extracts characters, locations, and categories from a free-text prompt using deterministic lookup.
 """
 
 from dataclasses import dataclass
@@ -48,11 +44,6 @@ class EntityExtractor:
         self.loc_regex = self._compile_regex(self.loc_map.keys())
 
     def _build_lookup_map(self, directory: Path) -> Dict[str, str]:
-        """
-        Scans JSON files and builds a flat map of:
-        "lowercase name" -> "entity_id"
-        "lowercase alias" -> "entity_id"
-        """
         lookup = {}
         if not directory.exists():
             logger.warning(f"Directory not found: {directory}")
@@ -85,11 +76,6 @@ class EntityExtractor:
         return lookup
 
     def _compile_regex(self, terms: Set[str]) -> Optional[re.Pattern]:
-        """
-        Creates a single optimized regex pattern for all terms.
-        Pattern: \b(term1|term2|term3)\b
-        Sorted by length desc to ensure "Isaac Smith" matches before "Isaac".
-        """
         if not terms:
             return None
 

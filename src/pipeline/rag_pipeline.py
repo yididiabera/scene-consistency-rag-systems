@@ -60,7 +60,6 @@ class RAGPipeline:
     def _entity_lookup(
         entities: List[Dict[str, Any]], id_key: str
     ) -> Dict[str, Dict[str, Any]]:
-        """Build a lookup map of entity id → entity payload."""
         return {entity[id_key]: entity for entity in entities if entity.get(id_key)}
 
     def _index_documents(
@@ -71,18 +70,6 @@ class RAGPipeline:
         entity_type: str,
         include_image: bool = True,
     ) -> int:
-        """
-        Embed chunk texts (plus optional canonical images) and upsert into ChromaDB.
-
-        Implements robust error handling for:
-        - Text embedding failures (batch-level)
-        - Image embedding failures (per-entity, non-blocking)
-        - Document processing failures (per-document, non-blocking)
-        - ChromaDB insertion failures (batch-level)
-
-        Returns:
-            Number of successfully indexed documents
-        """
         if not docs:
             console.print(f"[yellow]⚠[/yellow] No documents to index for {collection_name}")
             return 0
@@ -346,7 +333,6 @@ class RAGPipeline:
         return reranked_results
 
     def _display_results(self, results: List[Dict[str, Any]]):
-        """Display query results in a nice table."""
         if not results:
             return
 

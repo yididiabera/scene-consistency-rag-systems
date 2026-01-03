@@ -1,6 +1,5 @@
 """
-Production-ready ClipEmbedder with batched text/image encoding, fusion, and LRU caching.
-Public API: embed_text_batch, embed_image_batch, embed_entity, embed_entities
+ClipEmbedder: Batched text/image encoding, fusion, and caching.
 """
 
 from pathlib import Path
@@ -61,14 +60,6 @@ class ClipEmbedder:
         )
 
     def _add_to_cache(self, cache: OrderedDict, key: str, value: np.ndarray) -> None:
-        """
-        Add item to LRU cache, evicting least recently used item if at capacity.
-
-        Args:
-            cache: OrderedDict cache to add to
-            key: Cache key
-            value: Value to cache
-        """
         # If key exists, move to end (mark as recently used)
         if key in cache:
             cache.move_to_end(key)
@@ -82,7 +73,6 @@ class ClipEmbedder:
                 logger.debug(f"LRU cache evicted: {evicted_key[:50]}...")
 
     def embed_text_batch(self, texts: List[str]) -> np.ndarray:
-        """Batch text embedding. Returns (N, D) float32 array, L2-normalized."""
         if not texts:
             return np.zeros((0, self.dim), dtype=self.dtype)
         results: List[Optional[np.ndarray]] = [None] * len(texts)
@@ -191,7 +181,6 @@ class ClipEmbedder:
         )
 
     def embed_entity(self, entity: Dict) -> Dict:
-        """Embed a single entity and return dict with entity_id and fused_embedding."""
         eid = (
             entity.get("character_id") or entity.get("location_id") or entity.get("id")
         )

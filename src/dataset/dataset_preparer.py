@@ -1,6 +1,5 @@
 """
-Dataset Preparation
-Handles text normalization, chunking, and BM25 indexing
+Dataset Preparation: Text normalization, chunking, and indexing.
 """
 
 import json
@@ -54,13 +53,6 @@ class DatasetPreparer:
 
     @staticmethod
     def bm25_preprocess(text: str) -> List[str]:
-        """
-        Preprocess text for BM25:
-        - Lowercase
-        - Remove punctuation (Unicode-safe via regex)
-        - Remove stopwords
-        - Remove tokens with length < 2
-        """
         # Lowercase
         text = text.lower()
         # Remove punctuation (keep word chars and whitespace)
@@ -73,12 +65,6 @@ class DatasetPreparer:
     tokenize = bm25_preprocess
 
     def chunk_text(self, text: str, chunk_id_prefix: str) -> List[Dict[str, Any]]:
-        """
-        Split text into overlapping chunks.
-
-        Returns:
-            List of chunks with metadata
-        """
         if len(text) <= self.chunk_size:
             doc_id = f"{chunk_id_prefix}_{0:02d}"
             return [
@@ -116,16 +102,6 @@ class DatasetPreparer:
     def prepare_documents(
         self, entities: List[Dict[str, Any]], entity_type: str
     ) -> List[Dict[str, Any]]:
-        """
-        Prepare documents from entities for indexing.
-
-        Args:
-            entities: List of entity dictionaries
-            entity_type: "character", "location", or "relationship"
-
-        Returns:
-            List of prepared documents with metadata
-        """
         documents = []
 
         for entity in track(entities, description=f"Preparing {entity_type}s"):
@@ -215,7 +191,6 @@ class DatasetPreparer:
 
     # -------- Convenience helpers for tests & pipeline QA --------
     def load_entities(self, dir_path: str, entity_type: str) -> List[Dict[str, Any]]:
-        """Load all JSON files from a directory as entity dicts."""
         base = Path(dir_path)
         entities: List[Dict[str, Any]] = []
         for p in sorted(base.glob("*.json")):
@@ -238,7 +213,6 @@ class DatasetPreparer:
     def chunk_entity(
         self, entity: Dict[str, Any], entity_type: str
     ) -> List[Dict[str, Any]]:
-        """Chunk a single entity using its text field and id."""
         if entity_type == "character":
             text = entity.get("appearance", "")
             eid = entity.get("character_id")
@@ -258,15 +232,6 @@ class DatasetPreparer:
         locations_dir: str = "data/locations",
         relationships_dir: str = None,
     ) -> Dict[str, Any]:
-        """
-        Prepare a full dataset structure ready for embedding & indexing.
-        Returns:
-            {
-              "characters": [...chunks...],
-              "locations":  [...chunks...],
-              "bm25": BM25Okapi
-            }
-        """
         characters = (
             self.load_entities(characters_dir, "character") if characters_dir else []
         )
