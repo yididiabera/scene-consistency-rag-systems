@@ -186,10 +186,8 @@ class HybridRetriever:
     ) -> List[Dict[str, Any]]:
         top_k = top_k or self.default_top_k
 
-        # Merge results by entity_id
         merged = {}
 
-        # Add BM25 results
         for result in bm25_results:
             entity_id = result["entity_id"]
             merged[entity_id] = {
@@ -198,7 +196,6 @@ class HybridRetriever:
                 "dense_score": 0.0,
             }
 
-        # Add/update with dense results
         for result in dense_results:
             entity_id = result["entity_id"]
             if entity_id in merged:
@@ -210,7 +207,6 @@ class HybridRetriever:
                     "dense_score": result.get("dense_score", 0.0),
                 }
 
-        # Normalize scores
         items = list(merged.values())
         bm25_scores = [item["bm25_score"] for item in items]
         dense_scores = [item["dense_score"] for item in items]
@@ -221,6 +217,5 @@ class HybridRetriever:
         for item, nb, nd in zip(items, norm_bm25, norm_dense):
             item["hybrid_score"] = self.dense_weight * nd + self.bm25_weight * nb
 
-        # Sort by hybrid score
         results = sorted(items, key=lambda x: x["hybrid_score"], reverse=True)
         return results[:top_k]

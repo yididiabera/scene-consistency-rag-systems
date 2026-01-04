@@ -14,8 +14,8 @@ class EnrichedShot:
     raw_description: str
     characters: list
     locations: list
-    character_names: Dict[str, str]  # {char_id: "Isaac"}
-    location_names: Dict[str, str]   # {loc_id: "Isaac's Office"}
+    character_names: Dict[str, str] 
+    location_names: Dict[str, str] 
     rag_characters: Dict[str, str]
     rag_locations: Dict[str, str]
     rag_scores: Dict[str, Dict[str, Any]]

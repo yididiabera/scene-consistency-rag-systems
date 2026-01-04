@@ -216,7 +216,7 @@ class ClipEmbedder:
             for i, e in enumerate(entities)
         ]
 
-    # -------------------- Backward Compatibility --------------------
+    # Backward Compatibility 
     def fuse(
         self,
         text_emb: np.ndarray,

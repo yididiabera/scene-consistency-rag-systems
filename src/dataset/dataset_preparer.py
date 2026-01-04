@@ -12,7 +12,7 @@ from config import cfg
 
 console = Console()
 
-# Stopwords for BM25 (minimal; do not remove "this" or "with" to preserve semantics for our tests)
+# Stopwords for BM25 
 STOPWORDS = set(
     [
         "a",
@@ -100,7 +100,6 @@ class DatasetPreparer:
         documents = []
 
         for entity in track(entities, description=f"Preparing {entity_type}s"):
-            # Extract text based on entity type
             if entity_type == "character":
                 text = entity.get("appearance", "")
                 entity_id = entity.get("character_id")
@@ -108,7 +107,6 @@ class DatasetPreparer:
                 text = entity.get("description", "")
                 entity_id = entity.get("location_id")
             elif entity_type == "relationship":
-                # Combine relationship info
                 text = f"{entity.get('relationship_type', '')} between {entity.get('source_entity', '')} and {entity.get('target_entity', '')}"
                 entity_id = entity.get("relationship_id")
             else:
@@ -117,7 +115,6 @@ class DatasetPreparer:
             if not text:
                 continue
 
-            # Create chunks
             chunks = self.chunk_text(text, entity_id)
 
             for chunk in chunks:
@@ -148,11 +145,9 @@ class DatasetPreparer:
             for doc in documents
         ]
         bm25 = BM25Okapi(tokenized_docs)
-        # Attach corpus for introspection in tests (some versions of rank_bm25 hide it)
         try:
             setattr(bm25, "corpus", tokenized_docs)
         except Exception:
-            # Some BM25 implementations may not allow setting attributes, which is fine
             pass
 
         console.print(
@@ -184,7 +179,6 @@ class DatasetPreparer:
         console.print(f"[green]✓[/green] BM25 index loaded from {index_path}")
         return data["bm25"], data["documents"]
 
-    # -------- Convenience helpers for tests & pipeline QA --------
     def load_entities(self, dir_path: str, entity_type: str) -> List[Dict[str, Any]]:
         base = Path(dir_path)
         entities: List[Dict[str, Any]] = []

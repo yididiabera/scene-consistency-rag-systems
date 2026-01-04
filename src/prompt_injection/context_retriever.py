@@ -4,9 +4,6 @@ ContextRetriever: Queries RAG pipeline with entity IDs to retrieve relevant cont
 
 from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
-
-# Import your existing pipeline
-# Using relative import to avoid path issues
 from pipeline import RAGPipeline
 from .entity_extractor import EntityExtractionResult
 
