@@ -18,11 +18,11 @@ build/
 *~
 
 # Character Images
-data/characters/*.jpg
-data/characters/*.png
-data/characters/*.jpeg
-data/characters/*.gif
-data/characters/*.webp
+# data/characters/*.jpg
+# data/characters/*.png
+# data/characters/*.jpeg
+# data/characters/*.gif
+# data/characters/*.webp
 
 # Data & Models
 *.faiss
