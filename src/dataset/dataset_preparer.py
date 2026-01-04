@@ -1,6 +1,4 @@
-"""
-Dataset Preparation: Text normalization, chunking, and indexing.
-"""
+"""Dataset Preparation: Text normalization, chunking, and indexing."""
 
 import json
 import pickle
@@ -53,11 +51,8 @@ class DatasetPreparer:
 
     @staticmethod
     def bm25_preprocess(text: str) -> List[str]:
-        # Lowercase
         text = text.lower()
-        # Remove punctuation (keep word chars and whitespace)
         text = re.sub(r"[^\w\s]", " ", text)
-        # Split
         tokens = [t for t in text.split() if t and t not in STOPWORDS and len(t) >= 2]
         return tokens
 
@@ -70,7 +65,7 @@ class DatasetPreparer:
             return [
                 {
                     "doc_id": doc_id,
-                    "chunk_id": doc_id,  # backward compatible alias
+                    "chunk_id": doc_id,
                     "text": text,
                     "chunk_index": 0,
                 }
@@ -88,7 +83,7 @@ class DatasetPreparer:
             chunks.append(
                 {
                     "doc_id": doc_id,
-                    "chunk_id": doc_id,  # backward compatible alias
+                    "chunk_id": doc_id,
                     "text": chunk_text,
                     "chunk_index": chunk_idx,
                 }
@@ -134,7 +129,7 @@ class DatasetPreparer:
                     "entity_type": entity_type,
                     "text": chunk["text"],
                     "bm25_tokens": tokens,
-                    "tokens": tokens,  # backward compatibility
+                    "tokens": tokens,
                     "chunk_index": chunk["chunk_index"],
                     "metadata": entity.get("metadata", {}),
                     "tags": entity.get("tags", []),
@@ -197,7 +192,6 @@ class DatasetPreparer:
             try:
                 with open(p, "r", encoding="utf-8") as f:
                     data = json.load(f)
-                # Accept single or list payloads
                 if isinstance(data, list):
                     entities.extend(data)
                 else:

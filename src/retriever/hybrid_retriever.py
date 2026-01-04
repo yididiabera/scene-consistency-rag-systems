@@ -1,7 +1,4 @@
-"""
-Hybrid Retrieval System
-Combines BM25 (sparse) and CLIP (dense) retrieval
-"""
+"""Hybrid Retrieval System: Combines BM25 (sparse) and CLIP (dense) retrieval."""
 
 import numpy as np
 import logging
@@ -40,7 +37,6 @@ class HybridRetriever:
     ) -> List[Dict[str, Any]]:
         """Perform BM25 sparse retrieval."""
         if self.bm25 is None:
-            # DATA ISSUE: Index not built yet (not an error, just not ready)
             logger.warning(
                 "BM25 search requested but index not loaded. "
                 "Run build_indices first. Returning empty results."
@@ -54,7 +50,6 @@ class HybridRetriever:
             tokenized_query = self.dataset_prep.tokenize(query)
             scores = self.bm25.get_scores(tokenized_query)
         except Exception as e:
-            # SYSTEM ERROR: BM25 scoring failed
             logger.error(f"BM25 scoring failed for query '{query}': {e}", exc_info=True)
             console.print(f"[red]✗[/red] BM25 scoring failed: {e}")
             return []
@@ -69,7 +64,6 @@ class HybridRetriever:
                     {**self.bm25_documents[idx], "bm25_score": float(scores[idx])}
                 )
 
-        # LEGITIMATE EMPTY: No results with score > 0
         if not results:
             logger.info(f"BM25 search found no results for query: '{query}'")
 
@@ -88,7 +82,6 @@ class HybridRetriever:
         try:
             query_embedding = self.text_embedder.embed_text(query)
         except Exception as exc:
-            # SYSTEM ERROR: Embedding model failed
             logger.error(
                 f"Dense embedding failed for query '{query}': {exc}",
                 exc_info=True
@@ -104,7 +97,6 @@ class HybridRetriever:
                 where=where,
             )
         except Exception as exc:
-            # SYSTEM ERROR: ChromaDB query failed
             logger.error(
                 f"ChromaDB query failed for collection '{collection_name}' "
                 f"with filter {where}: {exc}",
@@ -133,7 +125,6 @@ class HybridRetriever:
                     }
                 )
         except (KeyError, IndexError, TypeError) as e:
-            # DATA ERROR: Malformed response from ChromaDB
             logger.error(
                 f"Failed to format ChromaDB results - malformed response structure: {e}",
                 exc_info=True
@@ -141,7 +132,6 @@ class HybridRetriever:
             console.print(f"[red]✗[/red] Failed to format search results: {e}")
             return []
 
-        # LEGITIMATE EMPTY: No results found
         if not formatted_results:
             logger.info(
                 f"Dense search found no results in '{collection_name}' "
@@ -153,7 +143,6 @@ class HybridRetriever:
     @staticmethod
     def _safe_normalize(values: List[float]) -> List[float]:
         if not values:
-            # LEGITIMATE EMPTY: No values to normalize
             return []
         vmin = min(values)
         vmax = max(values)
