@@ -80,7 +80,7 @@ def main():
     sample_shot = {
         "shot_id": "shot_001",
         "scene_id": "scene_001",
-        "description": "Isaac walks into Isaac's Office wearing his usual outfit",
+        "description": "PANEL 001\nSHOT_TYPE: ESTABLISHING SHOT\nSUBJECT: Electrical Power Facility\nACTION_DESCRIPTION: A wide, ominous shot of the power facility at night. Grimy metal, pulsing pipes, intermittent sparks. The facility dominates the frame, looking like a dark, brooding organism, baolin baolin.\nDIALOGUE: (Sound of Techno-heavy METAL MUSIC)",
         "actions": {"type": "entering", "intensity": "casual"},
         "camera": {"angle": "medium_shot", "movement": "static"},
         "metadata": {"duration": 3.5}
