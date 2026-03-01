@@ -165,7 +165,6 @@ class HybridRetriever:
 
         Fusion formula: final_score = (1-bm25_weight)*dense_score + bm25_weight*bm25_score
         """
-        # Get BM25 results
         dense_results = self.dense_search(
             query,
             collection_name,
