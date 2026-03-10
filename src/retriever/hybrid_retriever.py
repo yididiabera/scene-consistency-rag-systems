@@ -165,6 +165,16 @@ class HybridRetriever:
 
         Fusion formula: final_score = (1-bm25_weight)*dense_score + bm25_weight*bm25_score
         """
+        # Get BM25 results
+        bm25_results = self.bm25_search(query, top_k=bm25_k or top_k)
+        
+        # Apply entity_id filter to BM25 results if where clause is provided
+        if where and "entity_id" in where:
+            target_entity_id = where["entity_id"]
+            bm25_results = [
+                r for r in bm25_results 
+                if r.get("entity_id") == target_entity_id
+            ]
         dense_results = self.dense_search(
             query,
             collection_name,
@@ -172,7 +182,7 @@ class HybridRetriever:
             where=where,
         )
         return self._hybrid_fuse(
-            self.bm25_search(query, top_k=bm25_k or top_k),
+            bm25_results,
             dense_results,
             top_k,
         )
